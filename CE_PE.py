@@ -61,12 +61,12 @@ def print_hr():
 
 def print_oi(oi_dict):
     for strike in oi_dict:
-        print(str(strike) + " CE [" + str(oi_dict[strike]['CE'][0]) + "] - PE  [" + str(oi_dict[strike]['PE'][0]) + "]")
+        print(str(strike) + " CE [" + str(oi_dict[strike]['CE'][-1]) + "] - PE  [" + str(oi_dict[strike]['PE'][-1]) + "]")
 
 # Fetching CE and PE data based on Nearest Expiry Date
 def update_oi(oi_dict, url):
-    global bnf_ul
-    global bnf_nearest
+    bnf_ul = 0.0
+    bnf_nearest = 0.0
     response_text = get_data(url)
     data = json.loads(response_text)
     bnf_ul = data["records"]["underlyingValue"]
