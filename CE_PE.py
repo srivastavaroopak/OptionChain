@@ -7,6 +7,7 @@ Created on Tue Aug 16 20:42:09 2022
 import requests
 import json
 import math
+import time
 
 # Method to get nearest strikes
 def round_nearest(x,num=50): return int(math.ceil(float(x)/num)*num)
@@ -24,8 +25,9 @@ headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 sess = requests.Session()
 cookies = dict()
 lot_value = 25
-num = 7
+num = 4
 step = 100
+refresh_interval = 180
 # Local methods
 def set_cookie():
     request = sess.get(url_oc, headers=headers, timeout=5)
@@ -83,7 +85,14 @@ def update_oi(oi_dict, url):
                 oi_dict[keys[key_index]]['PE'].append(item["PE"]["openInterest"]*lot_value)
                 key_index = key_index + 1;
 
-oi_dict = {}
-set_ds(oi_dict, url_bnf)
-update_oi(oi_dict, url_bnf)
-print_oi(oi_dict)
+def main():
+    oi_dict = {}
+    set_ds(oi_dict, url_bnf)
+    while True:
+        update_oi(oi_dict, url_bnf)
+        print_oi(oi_dict)
+        time.sleep(refresh_interval)
+        
+if __name__== "__main__" :
+    main()
+
