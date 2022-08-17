@@ -9,7 +9,8 @@ import json
 import math
 import time
 
-# Method to get nearest strikes
+''' Method to get nearest strikes
+'''
 def round_nearest(x,num=50): return int(math.ceil(float(x)/num)*num)
 def nearest_strike_bnf(x): return round_nearest(x,100)
 
@@ -22,6 +23,8 @@ headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
             'accept-language': 'en,gu;q=0.9,hi;q=0.8',
             'accept-encoding': 'gzip, deflate, br'}
 
+''' Global configs
+'''
 sess = requests.Session()
 cookies = dict()
 lot_value = 25
@@ -33,6 +36,8 @@ def set_cookie():
     request = sess.get(url_oc, headers=headers, timeout=5)
     cookies = dict(request.cookies)
 
+''' Get the data from Url
+'''
 def get_data(url):
     set_cookie()
     response = sess.get(url, headers=headers, timeout=5, cookies=cookies)
@@ -42,7 +47,17 @@ def get_data(url):
         return response.text
     return ""
 
-def set_ds(oi_dict, url):
+''' Printing horizontal line for better redaibility
+'''
+def print_hr():
+    print("------------------------------------------------------------------------")
+
+''' Fetching CE and PE data based on Nearest Expiry Date and add it
+    oi_dict, the keys of oi_dict which are strike prices will be used
+    to update the values later. We want to only update some particular
+    strike price which is initilized here
+'''
+def initilize_strike_prices(oi_dict, url):
     response_text = get_data(url)
     data = json.loads(response_text)
     ul = data["records"]["underlyingValue"]
@@ -56,14 +71,16 @@ def set_ds(oi_dict, url):
                 oi_dict[strike] = {'CE' : [], 'PE' : []} 
                 strike = strike + step
 
-def print_hr():
-    print("------------------------------------------------------------------------")
-
+''' Printing last entry in oi_dict which contains all CE PE OI for gicen expiry
+    It is time series data capturing the values at regular interval
+'''
 def print_oi(oi_dict):
     for strike in oi_dict:
         print(str(strike) + " CE [" + str(oi_dict[strike]['CE'][-1]) + "] - PE  [" + str(oi_dict[strike]['PE'][-1]) + "]")
 
-# Fetching CE and PE data based on Nearest Expiry Date
+''' Fetching CE and PE data based on Nearest Expiry Date and append it to
+    oi_dict data structures for plotting/printing
+'''
 def update_oi(oi_dict, url):
     bnf_ul = 0.0
     bnf_nearest = 0.0
@@ -85,9 +102,13 @@ def update_oi(oi_dict, url):
                 oi_dict[keys[key_index]]['PE'].append(item["PE"]["openInterest"]*lot_value)
                 key_index = key_index + 1;
 
+''' The main function is called in loop to append values to oi_dict
+    oi_dict will be like
+    {strike} : {'CE'} : [oi_t, oi_t+1], {'PE'} : [oi_t, oi_t+1]
+'''
 def main():
     oi_dict = {}
-    set_ds(oi_dict, url_bnf)
+    initilize_strike_prices(oi_dict, url_bnf)
     while True:
         update_oi(oi_dict, url_bnf)
         print_oi(oi_dict)
